@@ -20,6 +20,7 @@ jobs:
 
       - name: Build
         run: |
+          cd code
           yarn install
           yarn build
 

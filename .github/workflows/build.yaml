@@ -1,0 +1,45 @@
+name: Build on Tag
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-on-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Node.js and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build
+        run: |
+          yarn install
+          yarn build
+
+      - name: Copy files
+        run: |
+          mkdir -p bcl-runcode
+          cp -r build bcl-core/build
+          cp fxmanifest.production.lua bcl-core/fxmanifest.lua
+          cb run.lua bcl-core/run.lua
+          zip -r bcl-core.zip bcl-core
+
+      - name: Create Release
+        uses: 'marvinpinto/action-automatic-releases@v1.2.1'
+        id: auto_release
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          title: '${{ env.RELEASE_VERSION }}'
+          prerelease: false
+          files: bcl-core.zip
+
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

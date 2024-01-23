@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UI</title>
+
+  </head>
+
+  <script defer>
+    const WEBVIEW_ENV = window.GetParentResourceName ? 'GAME' : 'BROWSER';
+
+    Object.defineProperty(window, 'WEBVIEW_ENV', {
+      get: () => WEBVIEW_ENV
+    });
+
+    const PARENT_RESOURCE_NAME = window.GetParentResourceName?.() ?? 'PARENT_RESOURCE';
+
+    Object.defineProperty(window, 'PARENT_RESOURCE_NAME', {
+      get: () => PARENT_RESOURCE_NAME
+    });
+  </script>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "yarn build --watch"
+  },
+  "dependencies": {
+    "@lib/shared": "^0.0.1"
+  },
+  "devDependencies": {
+    "@citizenfx/server": "^2.0.7257-1",
+    "@types/node": "^20.10.5"
+  }
+}

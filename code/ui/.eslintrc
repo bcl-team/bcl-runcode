@@ -1,0 +1,26 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2020": true },
+  "extends": [
+    "../.eslintrc"
+  ],
+  "ignorePatterns": [ "dist", ".eslintrc" ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": [ "react-refresh" ],
+  "rules": {
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    "react-refresh/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ],
+    "import/no-unresolved": [
+      "error",
+      {
+        "ignore": [ ".svg" ]
+      }
+    ]
+  }
+}

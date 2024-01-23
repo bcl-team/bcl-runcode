@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "./dist",
+    "declaration": false,
+    "noEmit": true,
+    "paths": {},
+    "lib": ["dom", "esnext"],
+    "types": ["@citizenfx/client", "@types/node"],
+  },
+  "include": ["./src"]
+}

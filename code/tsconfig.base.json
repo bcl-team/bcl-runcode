@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": ["ES6", "ES2021"],
+    "downlevelIteration": true,
+    "outDir": "./dist/server",
+    "module": "ESNext",
+    "incremental": true,
+    "allowJs": false,
+    "moduleResolution": "node",
+    "target": "esnext",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "baseUrl": "./src",
+    "skipLibCheck": true,
+    "types": ["@types/node"]
+  },
+  "exclude": ["node_modules"]
+}

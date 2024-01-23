@@ -29,7 +29,7 @@ jobs:
           mkdir -p bcl-runcode
           cp -r build bcl-runcode/build
           cp fxmanifest.production.lua bcl-runcode/fxmanifest.lua
-          cb run.lua bcl-runcode/run.lua
+          cp run.lua bcl-runcode/run.lua
           zip -r bcl-runcode.zip bcl-runcode
 
       - name: Create Release

@@ -30,7 +30,8 @@ jobs:
           cp -r build bcl-runcode/build
           cp fxmanifest.production.lua bcl-runcode/fxmanifest.lua
           cp run.lua bcl-runcode/run.lua
-          zip -r bcl-runcode.zip bcl-runcode
+          zip -r ${{ github.event.repository.name }}.zip bcl-runcode
+          tar -czf ${{ github.event.repository.name }}.tar.gz bcl-runcode
 
       - name: Create Release
         uses: 'marvinpinto/action-automatic-releases@v1.2.1'
@@ -39,7 +40,9 @@ jobs:
           repo_token: '${{ secrets.GITHUB_TOKEN }}'
           title: '${{ env.RELEASE_VERSION }}'
           prerelease: false
-          files: bcl-runcode.zip
+          files: |
+            ${{ github.event.repository.name }}.zip
+            ${{ github.event.repository.name }}.tar.gz
 
         env:
           CI: false

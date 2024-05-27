@@ -9,7 +9,6 @@ export type TScriptOutput = {
 };
 
 export type TScript = {
-  outputBuffer: TScriptOutput[];
   id: string;
   name: string;
   side: EScriptSide;

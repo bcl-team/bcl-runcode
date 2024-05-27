@@ -16,3 +16,21 @@ button {
     align-items: center;
     justify-content: center;
 }
+
+
+:root {
+    --scale: 1; /* Default scale for Full HD (1920x1080) */
+}
+
+
+@media (min-width: 3840px) {
+    :root {
+        --scale: 2; /* Scale for 4K (3840x2160) */
+    }
+}
+
+@media (min-width: 7680px) {
+    :root {
+        --scale: 4; /* Scale for 8K (7680x4320) */
+    }
+}

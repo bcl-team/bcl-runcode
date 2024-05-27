@@ -4,12 +4,11 @@ import styled from 'styled-components';
 import { fromTheme, getLanguageIcon, getScriptSide, scale, useTypes } from '../utils';
 import { useAppDispatch, useAppSelector } from '../store';
 import { IconButton } from './IconButton.tsx';
-import { VscClose, VscCode } from 'react-icons/vsc';
+import { VscClose, VscCode, VscLoading } from 'react-icons/vsc';
 import { closeScript, setActiveScript, updateScriptContent } from '../store/scripts.store.ts';
 import { EScriptLanguage, EScriptSide } from '../models';
 import { Strings } from '../const';
 import { IDisposable } from 'monaco-editor';
-import debounce from 'debounce';
 import { useDebouncedCallback } from 'use-debounce';
 import { client } from '../services';
 
@@ -226,7 +225,7 @@ export const CodeEditor: FC = () => {
     codeRef.current = activeScript?.content ?? '';
   }, [activeScript?.id]);
 
-  const executeCode = (): void => {
+  const executeCode = async (): Promise<void> => {
     if (isExecuting) {
       return;
     }
@@ -235,7 +234,7 @@ export const CodeEditor: FC = () => {
       return;
     }
     const code = codeRef.current;
-    client.emit(`bcl-runcode:run:${activeScript.language}:${activeScript.side}`, {
+    await client.invoke(`bcl-runcode:run:${activeScript.language}:${activeScript.side}`, {
       id: activeScript.id,
       language: activeScript.language,
       code,
@@ -267,7 +266,7 @@ export const CodeEditor: FC = () => {
         <div className="editor-actions">
           <div className="execute action" onClick={executeCode}>
             <div>{Strings.ExecuteCode}</div>
-            <VscCode />
+            {isExecuting ? <VscLoading /> : <VscCode />}
           </div>
         </div>
       </div>

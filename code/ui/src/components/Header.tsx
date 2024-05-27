@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { asset, fromTheme, scale } from '../utils';
 import { VscClose } from 'react-icons/vsc';
 import { Strings } from '../const';
+import { client } from '../services';
 
 const Wrapper = styled.div`
   user-select: none;
@@ -67,7 +68,6 @@ export const Header: FC = () => {
           src={asset('logo-header.png')}
           alt=""
           onClick={(e) => {
-            console.log('test', (e.target as HTMLAnchorElement).href);
             e.preventDefault();
             window.invokeNative('openUrl', Strings.ScriptURL);
           }}
@@ -75,7 +75,7 @@ export const Header: FC = () => {
         <div className="app-label">{Strings.ResourceName}</div>
       </div>
       <div className="controls">
-        <button>
+        <button onClick={() => client.emit('bcl-runcode:close')}>
           <VscClose />
         </button>
       </div>

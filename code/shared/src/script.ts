@@ -1,4 +1,9 @@
-import { TConsoleOutput } from './console';
+export type TConsoleOutput = {
+  id: string;
+  method: 'log' | 'debug' | 'info' | 'warn' | 'error';
+  data: unknown[];
+  timestamp: string;
+};
 
 const AsyncFunction = Object.getPrototypeOf(async function () {
   /**/
@@ -11,7 +16,6 @@ interface IScriptEvents {
 
 export class Script {
   public readonly id: string;
-  public readonly name: string;
   private readonly _console: Record<string, Function> = {};
   private readonly _context: Record<string, unknown> = {};
   private readonly _disposables: Function[] = [];

@@ -5,6 +5,8 @@ author 'https://github.com/ivanzaida'
 repository 'https://github.com/ivanzaida/ivz-dev-tools'
 
 file 'build/ui/**/*'
+file 'themes/*.json'
+file 'assets/*'
 
 ui_page 'build/ui/index.html'
 shared_script 'run.lua'

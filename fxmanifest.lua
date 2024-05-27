@@ -5,9 +5,11 @@ author 'https://github.com/ivanzaida'
 repository 'https://github.com/ivanzaida/ivz-dev-tools'
 
 file 'build/ui/**/*'
+file 'themes/*.json'
+file 'assets/*'
 
+ui_page 'http://localhost:5173/build/ui'
 shared_script 'run.lua'
-ui_page 'build/ui/index.html'
 
 client_script 'build/client.js'
 server_script 'build/server.js'

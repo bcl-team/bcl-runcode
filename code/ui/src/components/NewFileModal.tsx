@@ -128,7 +128,9 @@ const NewFileModal_: FC = () => {
           <input required name={'name'} type="text" placeholder={Strings.ScriptName} />
           <select name={'language'} id={'script-language'}>
             <option value={EScriptLanguage.JavaScript}>{Strings.JavaScript}</option>
-            <option value={EScriptLanguage.Lua}>{Strings.Lua}</option>
+            <option disabled value={EScriptLanguage.Lua}>
+              {Strings.Lua}
+            </option>
           </select>
           <select name={'side'} id={'script-side'}>
             <option value={EScriptSide.Client}>{Strings.Client}</option>

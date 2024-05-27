@@ -9,6 +9,7 @@ declare global {
   interface Window {
     WEBVIEW_ENV: 'BROWSER' | 'GAME';
     PARENT_RESOURCE_NAME: string;
+    invokeNative: (method: string, ...args: unknown[]) => void;
   }
 }
 

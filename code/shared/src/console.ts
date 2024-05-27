@@ -1,7 +1,7 @@
 export type TConsoleOutput = {
   id: string;
   method: 'log' | 'debug' | 'info' | 'warn' | 'error';
-  data: string[];
+  data: unknown[];
   timestamp: string;
 };
 

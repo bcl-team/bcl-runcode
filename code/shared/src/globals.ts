@@ -30,22 +30,27 @@ export const patchGlobals = (): Record<string, Function> => {
   };
 
   const on = (eventName: string, handler: (data: unknown) => void): void => {
+    res.on.push({ eventName, handler });
     globalThis.on(eventName, handler);
   };
 
   const onNet = (eventName: string, handler: (data: unknown) => void): void => {
+    res.onNet.push({ eventName, handler });
     globalThis.onNet(eventName, handler);
   };
 
   const setTick = (handler: () => void): number => {
+    res.setTick.push(globalThis.setTick(handler));
     return globalThis.setTick(handler);
   };
 
   const setInterval = (handler: () => void, ms?: number): unknown => {
+    res.setInterval.push(globalThis.setInterval(handler, ms));
     return globalThis.setInterval(handler, ms);
   };
 
   const setTimeout = (handler: () => void, ms?: number): unknown => {
+    res.setTimeout.push(globalThis.setTimeout(handler, ms));
     return globalThis.setTimeout(handler, ms);
   };
 

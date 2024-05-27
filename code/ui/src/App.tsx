@@ -1,78 +1,55 @@
-import { FC, useRef, useState } from 'react';
-import styled from 'styled-components';
+import { FC, useRef } from 'react';
 import Draggable from 'react-draggable';
-import { useClientEvent, useClientState } from './client';
-import { Controls, Editor, ScriptsNavigation, FilesNavBar, TopBar } from './components';
-import { useAppDispatch, useAppSelector } from './store';
-import { TConsoleOutput } from '@lib/shared';
-import dispatch from 'console-feed/lib/Hook/store/dispatch';
-import { addOutput } from './store/scripts.store.ts';
+import { useClientEvent, useClientState } from './services';
+import { Header, Explorer, Editor } from './components';
+import { useAppDimensions } from './hooks';
+import styled from 'styled-components';
+import { fromTheme, scale } from './utils';
+import { NewFileModal } from './components/NewFileModal.tsx';
+import { useAppDispatch } from './store';
+import { TConsoleOutput } from '@lib/shared/src';
+import { addOutput } from './store/console-buffer.store.ts';
 
-const width = 1000;
-const height = 600;
+const AppWrapper = styled.div`
+  border-radius: ${scale(5)};
+  overflow: hidden;
+  box-shadow: 0 0 ${scale(1)} ${scale(1)} ${fromTheme('borderColor')};
 
-const Wrapper = styled.div`
-  width: ${width}px;
-  height: ${height}px;
-
-  border-radius: 5px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  color: ${({ theme }) => theme.colors.text};
-
-  box-sizing: border-box;
-
-  header {
-    width: 100%;
-    height: 30px;
+  #top-bar {
+    border-bottom: 1px solid ${fromTheme('borderColor')};
   }
 
-  .container {
-    height: calc(100% - 30px);
-    background-color: ${({ theme }) => theme.colors.background};
-    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-    box-sizing: border-box;
-    display: flex;
+  .header-wrapper {
+    height: ${scale(30)};
+  }
 
-    .nav {
-      width: 20%;
+  .content-wrapper {
+    height: calc(100% - ${scale(30)});
+    display: flex;
+    justify-content: space-between;
+
+    .explorer-wrapper {
       height: 100%;
+      width: 20%;
+      border-right: 1px solid ${fromTheme('borderColor')};
     }
 
-    .editor-view {
+    .editor-wrapper {
+      height: 100%;
       width: 80%;
-      height: calc(100% - 30px);
-
-      .controls {
-        display: flex;
-        justify-content: space-between;
-      }
     }
   }
 `;
 
-const pos = localStorage.getItem(`editor:position`) ?? '{}';
-
-let { x: defaultPositionX = (window.innerWidth - width) / 2, y: defaultPositionY = (window.innerHeight - height) / 2 } =
-  JSON.parse(pos);
-
 export const App: FC = () => {
   const appRef = useRef<HTMLDivElement>(null);
   const isOpen = useClientState(`editor:isOpen`, false);
+  const [dimensions, setDimensions] = useAppDimensions();
   const dispatch = useAppDispatch();
 
-  const scripts = useAppSelector((x) => x.scripts.scripts);
-  useClientEvent(
-    'editor:output',
-    (data: TConsoleOutput) => {
-      console.log('triggered');
-      const script = scripts.find((x) => x.id === data.id);
-      if (!script) {
-        return;
-      }
-      dispatch(addOutput({ id: data.id, output: { ...data, id: window.crypto.randomUUID() } }));
-    },
-    [scripts],
-  );
+  useClientEvent('bcl-runcode:output', (data: [string, TConsoleOutput]) => {
+    dispatch(addOutput(data));
+  });
 
   if (!isOpen) {
     return null;
@@ -82,36 +59,31 @@ export const App: FC = () => {
     <Draggable
       bounds={{
         left: 0,
-        right: window.innerWidth - width,
+        right: window.innerWidth - dimensions.width,
         top: 0,
-        bottom: window.innerHeight - height,
+        bottom: window.innerHeight - dimensions.height,
       }}
       handle={'#top-bar'}
       nodeRef={appRef}
-      defaultPosition={{ x: defaultPositionX, y: defaultPositionY }}
+      defaultPosition={{ x: dimensions.x, y: dimensions.y }}
       onStop={(e, data) => {
-        localStorage.setItem(`editor:position`, JSON.stringify({ x: data.x, y: data.y }));
-        defaultPositionX = data.x;
-        defaultPositionY = data.y;
+        setDimensions({ x: data.x, y: data.y });
       }}
     >
-      <Wrapper ref={appRef}>
-        <header id={'top-bar'}>
-          <TopBar />
-        </header>
-        <div className="container">
-          <div className={'nav'}>
-            <FilesNavBar />
+      <AppWrapper ref={appRef} style={{ width: dimensions.width + 'px', height: dimensions.height + 'px' }} id={'app'}>
+        <div className={'header-wrapper'} style={{ width: '100%' }} id={'top-bar'}>
+          <Header />
+        </div>
+        <div className="content-wrapper">
+          <div className="explorer-wrapper">
+            <Explorer />
           </div>
-          <div className={'editor-view'}>
-            <div className={'controls'}>
-              <ScriptsNavigation />
-              <Controls />
-            </div>
+          <div className="editor-wrapper">
             <Editor />
           </div>
         </div>
-      </Wrapper>
+        <NewFileModal key={String(isOpen)} />
+      </AppWrapper>
     </Draggable>
   );
 };

@@ -1,12 +1,12 @@
 import { ITheme } from './theme.interface.ts';
 
 export const darkTheme: ITheme = {
-  colors: {
-    background: '#181818',
-    activeBackground: '#3d3d3d',
-    text: '#cccccc',
-    activeText: '#ffffff',
-    border: '#242424',
-    hover: '#242424',
-  },
+  backgroundColor: '#181818',
+  borderColor: '#3E3F40',
+  inactiveTextColor: '#4B4B4B',
+  activeTextColor: '#CCCCCC',
+  dangerColor: '#E81123',
+  activeColor: '#2D2E2E',
+  secondaryColor: '#2D2E2E',
+  scrollBarColor: '#5b5b5b',
 };

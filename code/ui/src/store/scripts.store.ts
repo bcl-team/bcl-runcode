@@ -1,69 +1,87 @@
+import { TCreateScriptModel, TScript } from '../models';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TScript, TScriptOutput } from '../models';
 
-type TScripsState = {
+export type TScriptsStore = {
+  openScriptIds: string[];
   scripts: TScript[];
-  activeScript?: string;
-  openScripts: string[];
+  activeScriptId?: string;
 };
 
-const initialState: TScripsState = JSON.parse(localStorage.getItem('scripts') || 'null') || {
+const initialState: TScriptsStore = {
+  openScriptIds: [],
   scripts: [],
-  activeScript: undefined,
-  openScripts: [],
+  activeScriptId: undefined,
 };
 
-const save = (state: TScripsState): void => {
-  localStorage.setItem('scripts', JSON.stringify(state));
+const getInitialState = (): TScriptsStore => {
+  const scripts = localStorage.getItem('scripts');
+  if (scripts) {
+    return { ...initialState, ...JSON.parse(scripts) };
+  }
+
+  return initialState;
 };
 
-const scriptsSlice = createSlice({
+const fallback = (value: string | undefined, fallback: string): string => {
+  if (value === undefined || value === '') {
+    return fallback;
+  }
+  return value;
+};
+
+const slice = createSlice({
   name: 'scripts',
-  initialState,
+  initialState: getInitialState(),
   reducers: {
-    setScripts: (state, action: PayloadAction<TScripsState>) => {
-      return action.payload;
+    createScript(state, action: PayloadAction<TCreateScriptModel>) {
+      const id = window.crypto.randomUUID();
+      state.scripts.push({
+        ...action.payload,
+        id,
+        content: '',
+      });
+      state.openScriptIds.push(id);
+      state.activeScriptId = id;
     },
-    addScript: (state, action: PayloadAction<TScript>): void => {
-      state.scripts.push(action.payload);
-      state.activeScript = action.payload.id;
-      save(state);
-    },
-    addOutput(state, actionL: PayloadAction<{ id: string; output: TScriptOutput }>): void {
-      const script = state.scripts.find((s) => s.id === actionL.payload.id);
+    updateScriptName(state, action: PayloadAction<{ id: string; name?: string }>) {
+      const script = state.scripts.find((script) => script.id === action.payload.id);
       if (script) {
-        script.outputBuffer.push(actionL.payload.output);
+        script.name = fallback(action.payload.name, 'Untitled');
       }
-      save(state);
     },
-    setActiveScript: (state, action: PayloadAction<string>): void => {
-      state.activeScript = action.payload;
-      if (!state.openScripts.includes(action.payload)) {
-        state.openScripts.push(action.payload);
-      }
-      save(state);
-    },
-    setScriptContent: (state, action: PayloadAction<{ id: string; content: string }>): void => {
-      const script = state.scripts.find((s) => s.id === action.payload.id);
+    updateScriptContent(state, action: PayloadAction<{ id: string; content: string }>) {
+      const script = state.scripts.find((script) => script.id === action.payload.id);
       if (script) {
         script.content = action.payload.content;
-        save(state);
       }
     },
-    removeScript: (state, action: PayloadAction<string>): void => {
-      state.scripts = state.scripts.filter((s) => s.id !== action.payload);
-      save(state);
+    deleteScript(state, action: PayloadAction<string>) {
+      state.scripts = state.scripts.filter((script) => script.id !== action.payload);
     },
-    clearOutput(state, action: PayloadAction<string>): void {
-      const script = state.scripts.find((s) => s.id === action.payload);
-      if (script) {
-        script.outputBuffer = [];
-        save(state);
+    setScripts: (state, action) => {
+      state.scripts = action.payload;
+    },
+    setActiveScript: (state, action) => {
+      state.activeScriptId = action.payload;
+      state.openScriptIds = [...new Set([...state.openScriptIds, action.payload])];
+    },
+    closeScript: (state, action: PayloadAction<string>) => {
+      state.openScriptIds = state.openScriptIds.filter((id) => id !== action.payload);
+      if (state.activeScriptId === action.payload) {
+        state.activeScriptId = state.openScriptIds[state.openScriptIds.length - 1];
       }
     },
   },
 });
 
-export const { clearOutput, addOutput, setScriptContent, setScripts, addScript, removeScript, setActiveScript } =
-  scriptsSlice.actions;
-export const scriptsReducer = scriptsSlice.reducer;
+export const scriptsReducer = slice.reducer;
+
+export const {
+  closeScript,
+  createScript,
+  deleteScript,
+  setScripts,
+  setActiveScript,
+  updateScriptName,
+  updateScriptContent,
+} = slice.actions;

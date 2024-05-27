@@ -1,6 +1,6 @@
 import { emitNUI, onNUI } from './ui';
-import { runCode } from './runner';
 import { TConsoleOutput } from '@lib/shared';
+import './runner';
 
 const commandName = 'toggleEditor';
 
@@ -42,21 +42,7 @@ onNUI('editor:close', () => {
   closeEditor();
 });
 
-onNUI('runCode', async (code: { side: string; language: string; id: string; code: string }) => {
-  if (code.side === 'server') {
-    if (code.language === 'js') {
-      emitNet('runCode:js', code);
-    } else {
-      emitNet('runCode:lua', code);
-    }
-  } else {
-    if (code.language === 'js') {
-      await runCode(code);
-    } else {
-      emit('runCode:lua', code);
-    }
-  }
-});
+onNUI('bcl-runcode::run::js::server', (...args: unknown[]) => emitNet('bcl-code:runCode::js::server', ...args));
 
 RegisterCommand('+' + commandName, noop, false);
 RegisterCommand('-' + commandName, toggleEditor, false);

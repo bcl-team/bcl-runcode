@@ -44,9 +44,19 @@ onNUI('editor:close', () => {
 
 onNUI('bcl-runcode::run::js::server', (...args: unknown[]) => emitNet('bcl-code:runCode::js::server', ...args));
 
-RegisterCommand('+' + commandName, noop, false);
-RegisterCommand('-' + commandName, toggleEditor, false);
-RegisterKeyMapping('+' + commandName, 'Toggle editor', 'keyboard', 'F4');
+if (GetGameName() === 'gta5') {
+  RegisterCommand('+' + commandName, noop, false);
+  RegisterCommand('-' + commandName, toggleEditor, false);
+  RegisterKeyMapping('+' + commandName, 'Toggle editor', 'keyboard', 'F4');
+} else if (GetGameName() === 'redm') {
+  RegisterCommand(
+    'bclruncode',
+    () => {
+      toggleEditor();
+    },
+    false,
+  );
+}
 
 onNet('editor:output', (output: TConsoleOutput) => {
   emitNUI('editor:output', output);

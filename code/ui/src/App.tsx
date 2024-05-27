@@ -7,8 +7,8 @@ import styled from 'styled-components';
 import { fromTheme, scale } from './utils';
 import { NewFileModal } from './components/NewFileModal.tsx';
 import { useAppDispatch } from './store';
-import { TConsoleOutput } from '@lib/shared/src';
 import { addOutput } from './store/console-buffer.store.ts';
+import { TConsoleOutput } from '@lib/shared';
 
 const AppWrapper = styled.div`
   border-radius: ${scale(5)};

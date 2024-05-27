@@ -1,5 +1,11 @@
-import { TConsoleOutput } from '@lib/shared';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+export type TConsoleOutput = {
+  id: string;
+  method: 'log' | 'debug' | 'info' | 'warn' | 'error';
+  data: unknown[];
+  timestamp: string;
+};
 
 export type TConsoleBuffer = {
   [scriptId: string]: TConsoleOutput[];

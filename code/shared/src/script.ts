@@ -58,6 +58,7 @@ export class Script {
 
   public cleanup(): void {
     this._disposables.forEach((disposable) => disposable());
+    this._disposables.length = 0;
   }
 
   private static _getTs(): string {

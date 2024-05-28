@@ -15,3 +15,9 @@ declare const serverId: number;
 declare const requestModel: (model: string | number) => Promise<void>;
 declare const requestAnimDict: (dict: string) => Promise<void>;
 ```
+
+lua specific helper functions/props
+```ts
+declare const setTick: (handler: () => any) => TickHandle;
+declare const clearTick: (handle: TickHandle) => boolean;
+```

@@ -104,3 +104,13 @@ else
         cbs[id] = cb
     end)
 end
+
+AddEventHandler('playerDropped', function()
+    local source = tostring(source)
+    for id, script in pairs(scripts) do
+        if string.sub(id, 1, #source) == source then
+            script:cleanup()
+            scripts[id] = nil
+        end
+    end
+end)

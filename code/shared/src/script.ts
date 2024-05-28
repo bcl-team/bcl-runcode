@@ -1,3 +1,5 @@
+import { sleep, waitUntil } from './utils';
+
 export type TConsoleOutput = {
   id: string;
   method: 'log' | 'debug' | 'info' | 'warn' | 'error';
@@ -33,6 +35,8 @@ export class Script {
     this._context = context;
     this._console = Script._patchConsole(this);
     this._globals = Script._patchGlobals(this._disposables);
+    this._globals.sleep = sleep;
+    this._globals.waitUntil = waitUntil;
   }
 
   public async execute(code: string): Promise<void> {

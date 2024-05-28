@@ -1,4 +1,4 @@
-import { Script } from '@lib/shared';
+import { Script, sleep } from '@lib/shared';
 import { emitNUI, onNUI } from './ui';
 
 const scripts = new Map<string, Script>();
@@ -36,6 +36,31 @@ onNUI('bcl-runcode:run:js:client', async (code: { id: string; language: string; 
       },
       get lastVehicle() {
         return GetVehiclePedIsIn(getPlayerPed(), true);
+      },
+      requestModel: async (model: string | number): Promise<void> => {
+        if (!IsModelInCdimage(model)) {
+          throw new Error(`Model ${model} not found`);
+        }
+
+        RequestModel(model);
+        if (!HasModelLoaded(model)) {
+          RequestModel(model);
+          while (!HasModelLoaded(model)) {
+            await sleep(10);
+          }
+        }
+      },
+      requestAnimDict: async (dict: string): Promise<void> => {
+        if (!DoesAnimDictExist(dict)) {
+          throw new Error(`Anim dict ${dict} not found`);
+        }
+
+        if (!HasAnimDictLoaded(dict)) {
+          RequestAnimDict(dict);
+          while (!HasAnimDictLoaded(dict)) {
+            await sleep(10);
+          }
+        }
       },
     });
 

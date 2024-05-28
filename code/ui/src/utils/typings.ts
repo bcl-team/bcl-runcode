@@ -15,15 +15,23 @@ const getTypes = async (): Promise<{ server: string[]; client: string[] }> => {
     Promise.all(defFilesServer.map((file) => fetch(prefixServer + file).then((res) => res.text()))),
   ]);
 
-  client.push('declare const playerId: number;');
-  client.push('declare const playerPed: number;');
-  client.push('declare const currentVehicle: number;');
-  client.push('declare const lastVehicle: number;');
+  const sharedTypings = [
+    'declare const playerId: number;',
+    'declare const playerPed: number;',
+    'declare const currentVehicle: number;',
+    'declare const lastVehicle: number;',
+    'declare const sleep: (ms: number) => Promise<void>;',
+    'declare const waitUntil: (predicate: () => boolean, max?: number) => Promise<boolean>;',
+  ];
 
-  server.push('declare const playerId: number;');
-  server.push('declare const playerPed: number;');
-  server.push('declare const currentVehicle: number;');
-  server.push('declare const lastVehicle: number;');
+  client.push('declare const serverId: number;');
+  client.push('declare const requestModel: (model: string) => Promise<void>;');
+  client.push('declare const requestAnimDict: (dict: string) => Promise<void>;');
+
+  sharedTypings.forEach((typing) => {
+    server.push(typing);
+    client.push(typing);
+  });
 
   return { client, server };
 };

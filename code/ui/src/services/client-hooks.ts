@@ -1,7 +1,7 @@
 import { client } from './client';
-import { useEffect, useState } from 'react';
+import { DependencyList, useEffect, useState } from 'react';
 
-export const useClientEvent = <T>(event: string, handler: (arg: T) => unknown, deps?: React.DependencyList): void => {
+export const useClientEvent = <T>(event: string, handler: (arg: T) => unknown, deps: DependencyList = []): void => {
   useEffect(() => {
     client.on(event, handler as never);
     return () => {

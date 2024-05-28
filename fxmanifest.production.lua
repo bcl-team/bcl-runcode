@@ -9,6 +9,8 @@ file 'themes/*.json'
 file 'assets/*'
 
 ui_page 'build/ui/index.html'
+
+shared_script 'script.lua'
 shared_script 'run.lua'
 
 client_script 'build/client.js'

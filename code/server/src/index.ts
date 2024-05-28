@@ -47,7 +47,7 @@ onNet('bcl-runcode:run:js:server', async (runId: number, code: { id: string; lan
   }
 
   await script.execute(code.code);
-  emitNet('bcl-runcode:run:done', source, runId);
+  emitNet('bcl-runcode:run:done-js', source, runId);
 });
 
 on('playerDropped', () => {

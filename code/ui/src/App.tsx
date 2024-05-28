@@ -48,6 +48,7 @@ export const App: FC = () => {
   const dispatch = useAppDispatch();
 
   useClientEvent('bcl-runcode:output', (data: [string, TConsoleOutput]) => {
+    console.log('output', data);
     dispatch(addOutput(data));
   });
 

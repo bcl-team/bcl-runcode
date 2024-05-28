@@ -12,6 +12,7 @@ const pushLog = (codeId: string, output: unknown): void => {
 };
 
 onNet('bcl-runcode:output', pushLog);
+on('bcl-runcode:output-client', pushLog);
 
 onNUI('bcl-runcode:run:js:client', async (code: { id: string; language: string; code: string }) => {
   const id = code.id;
@@ -42,7 +43,6 @@ onNUI('bcl-runcode:run:js:client', async (code: { id: string; language: string; 
           throw new Error(`Model ${model} not found`);
         }
 
-        RequestModel(model);
         if (!HasModelLoaded(model)) {
           RequestModel(model);
           while (!HasModelLoaded(model)) {
@@ -86,7 +86,7 @@ onNUI('bcl-runcode:run:js:client', async (code: { id: string; language: string; 
 let runIdx = 0;
 const cbs: Record<string, Function> = {};
 
-onNet('bcl-runcode:run:done', (idx: number) => {
+onNet('bcl-runcode:run:done-js', (idx: number) => {
   cbs[idx]();
   delete cbs[idx];
 });

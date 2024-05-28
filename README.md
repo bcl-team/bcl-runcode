@@ -1,7 +1,4 @@
-LUA DOES NOT WORK FOR NOW
-
-
-## JS
+### Those functions/props are injected into both lua and js runtimes
 shared helper functions/props
 ```ts
 declare const playerId: number;

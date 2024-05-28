@@ -25,7 +25,7 @@ const getTypes = async (): Promise<{ server: string[]; client: string[] }> => {
   ];
 
   client.push('declare const serverId: number;');
-  client.push('declare const requestModel: (model: string) => Promise<void>;');
+  client.push('declare const requestModel: (model: string | number) => Promise<void>;');
   client.push('declare const requestAnimDict: (dict: string) => Promise<void>;');
 
   sharedTypings.forEach((typing) => {

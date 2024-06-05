@@ -14,8 +14,17 @@ end
 local function patchConsole(script)
     local function createLogger(method)
         return function(...)
-            local messages = { ... }
-            print(table.concat(messages, ' '))
+            local messages  = {}
+
+            for i = 1, select('#', ...) do
+                local value = select(i, ...)
+                if type(value) == 'vector3' then
+                    value = string.format('vector3(%f, %f, %f)', value.x, value.y, value.z)
+                end
+                table.insert(messages, value)
+            end
+
+            print(...)
             for _, handler in ipairs(script._events.out) do
                 handler({ id = script.id, method = method, data = messages, timestamp = getTs() })
             end

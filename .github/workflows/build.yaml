@@ -30,6 +30,7 @@ jobs:
           cp -r build bcl-runcode/build
           cp fxmanifest.production.lua bcl-runcode/fxmanifest.lua
           cp run.lua bcl-runcode/run.lua
+          cp script.lua bcl-runcode/script.lua
           zip -r ${{ github.event.repository.name }}.zip bcl-runcode
           tar -czf ${{ github.event.repository.name }}.tar.gz bcl-runcode
 

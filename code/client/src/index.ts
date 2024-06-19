@@ -44,10 +44,19 @@ onNUI('bcl-runcode:close', () => {
 
 onNUI('bcl-runcode::run::js::server', (...args: unknown[]) => emitNet('bcl-code:runCode::js::server', ...args));
 
-if (GetGameName() === 'fivem') {
+const gameName = GetGameName();
+if (gameName === 'fivem') {
   RegisterCommand('+' + commandName, noop, false);
   RegisterCommand('-' + commandName, toggleEditor, false);
   RegisterKeyMapping('+' + commandName, 'Toggle editor', 'keyboard', 'F4');
+} else if (gameName === 'redm') {
+  setTick(() => {
+    // F4
+    DisableControlAction(0, 0x1F6D95E5, true);
+    if (IsDisabledControlJustPressed(0, 0x1F6D95E5)) {
+      toggleEditor();
+    }
+  });
 }
 
 RegisterCommand(

@@ -1,4 +1,4 @@
-game 'gta5'
+game 'common'
 fx_version 'cerulean'
 
 author 'https://github.com/ivanzaida'

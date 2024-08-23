@@ -12,7 +12,6 @@ import { TConsoleOutput } from '@lib/shared';
 
 const AppWrapper = styled.div`
   border-radius: ${scale(5)};
-  overflow: hidden;
   box-shadow: 0 0 ${scale(1)} ${scale(1)} ${fromTheme('borderColor')};
 
   #top-bar {

@@ -10,7 +10,6 @@ const Wrapper = styled.div`
 
   .editor-content {
     height: 70%;
-    overflow: hidden;
   }
 
   .console-content {

@@ -229,11 +229,20 @@ export const CodeEditor: FC = () => {
     if (isExecuting) {
       return;
     }
+
     setIsExecuting(true);
+    
     if (!activeScript) {
+      setIsExecuting(false);
       return;
     }
     const code = codeRef.current;
+
+    if (!code) {
+      setIsExecuting(false);
+      return;
+    }
+
     await client.invoke(`bcl-runcode:run:${activeScript.language}:${activeScript.side}`, {
       id: activeScript.id,
       language: activeScript.language,

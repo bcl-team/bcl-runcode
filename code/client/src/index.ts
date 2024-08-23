@@ -6,24 +6,15 @@ const commandName = 'toggleEditor';
 
 const noop = (): void => null;
 
-let tick = null;
 
 const openEditor = (): void => {
-  SetNuiFocus(true, true);
-  SetNuiFocusKeepInput(true);
-  SetPlayerControl(PlayerId(), false, 0);
   emitNUI('editor:isOpen', true);
-  tick = setTick(() => {
-    DisableAllControlActions(0);
-  });
+  SetNuiFocus(true, true);
 };
 
 const closeEditor = (): void => {
-  SetNuiFocus(false, false);
-  SetPlayerControl(PlayerId(), true, 0);
   emitNUI('editor:isOpen', false);
-  clearTick(tick);
-  tick = undefined;
+  SetNuiFocus(false, false);
 };
 
 let isOpen = false;
@@ -45,6 +36,7 @@ onNUI('bcl-runcode:close', () => {
 onNUI('bcl-runcode::run::js::server', (...args: unknown[]) => emitNet('bcl-code:runCode::js::server', ...args));
 
 const gameName = GetGameName();
+
 if (gameName === 'fivem') {
   RegisterCommand('+' + commandName, noop, false);
   RegisterCommand('-' + commandName, toggleEditor, false);

@@ -24,6 +24,10 @@ const toggleEditor = (): void => {
   if (!isOpen) {
     closeEditor();
   } else {
+    if (IsWarningMessageActive() && GetWarningMessageTitleHash() == 1246147334) {
+      return;
+    }
+
     openEditor();
   }
 };

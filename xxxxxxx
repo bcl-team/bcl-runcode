@@ -1,0 +1,485 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Helper: random integer inclusive
+const ri = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const OPERATORS = [
+  { key: "+", label: "บวก" },
+  { key: "-", label: "ลบ" },
+  { key: "×", label: "คูณ" },
+  { key: "÷", label: "หาร" },
+];
+
+const DIFFS = {
+  Easy: { min: 0, max: 10 },
+  Medium: { min: 0, max: 20 },
+  Hard: { min: 0, max: 99 },
+};
+
+function makeQuestion(ops, diff) {
+  const { min, max } = DIFFS[diff];
+  const op = ops[ri(0, ops.length - 1)];
+  let a, b, ans;
+  if (op === "+") {
+    a = ri(min, max);
+    b = ri(min, max);
+    ans = a + b;
+  } else if (op === "-") {
+    a = ri(min, max);
+    b = ri(min, Math.min(a, max)); // หลีกเลี่ยงค่าติดลบ
+    ans = a - b;
+  } else if (op === "×") {
+    // ลดให้คูณไม่ยากเกินไปในโหมด Easy/Medium
+    const adjMax = diff === "Hard" ? max : diff === "Medium" ? 12 : 10;
+    a = ri(min, adjMax);
+    b = ri(min, adjMax);
+    ans = a * b;
+  } else if (op === "÷") {
+    // ให้คำตอบเป็นจำนวนเต็ม
+    const adjMax = diff === "Hard" ? 12 : diff === "Medium" ? 12 : 10;
+    b = ri(1, adjMax);
+    ans = ri(min, adjMax);
+    a = b * ans;
+  }
+  return { a, b, op, ans };
+}
+
+function useTimer(active, startFrom, onEnd) {
+  const [time, setTime] = useState(startFrom);
+  useEffect(() => {
+    if (!active) return;
+    setTime(startFrom);
+  }, [active, startFrom]);
+  useEffect(() => {
+    if (!active) return;
+    if (time <= 0) {
+      onEnd?.();
+      return;
+    }
+    const id = setTimeout(() => setTime((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [active, time, onEnd]);
+  return [time, setTime];
+}
+
+const saveHighscore = (entry) => {
+  try {
+    const data = JSON.parse(localStorage.getItem("mathgame_highscores") || "[]");
+    data.push(entry);
+    data.sort((a, b) => b.score - a.score);
+    const trimmed = data.slice(0, 10);
+    localStorage.setItem("mathgame_highscores", JSON.stringify(trimmed));
+    return trimmed;
+  } catch (e) {
+    return [];
+  }
+};
+
+const getHighscores = () => {
+  try {
+    return JSON.parse(localStorage.getItem("mathgame_highscores") || "[]");
+  } catch (e) {
+    return [];
+  }
+};
+
+export default function MathGameSite() {
+  const [mode, setMode] = useState("Timed"); // Timed, Lives, Practice
+  const [diff, setDiff] = useState("Easy");
+  const [ops, setOps] = useState(["+", "-", "×", "÷"]);
+  const [playing, setPlaying] = useState(false);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [lives, setLives] = useState(3);
+  const [question, setQuestion] = useState(null);
+  const [input, setInput] = useState("");
+  const [resultFlash, setResultFlash] = useState(null); // "correct" | "wrong"
+  const [ended, setEnded] = useState(false);
+  const [name, setName] = useState("");
+  const [lb, setLb] = useState(getHighscores());
+
+  const [time, setTime] = useTimer(playing && mode === "Timed", 60, () => {
+    setEnded(true);
+    setPlaying(false);
+  });
+
+  const keypad = useMemo(() => ["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "⌫", "✔"], []);
+  const inputRef = useRef(null);
+
+  // Start / Reset
+  const startGame = () => {
+    setScore(0);
+    setStreak(0);
+    setBestStreak(0);
+    setLives(3);
+    setEnded(false);
+    setInput("");
+    const q = makeQuestion(ops, diff);
+    setQuestion(q);
+    setPlaying(true);
+    if (mode === "Timed") setTime(60);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const nextQuestion = () => {
+    const q = makeQuestion(ops, diff);
+    setQuestion(q);
+    setInput("");
+    setTimeout(() => inputRef.current?.focus(), 10);
+  };
+
+  const submit = () => {
+    if (!question) return;
+    if (input === "") return;
+    const userAns = Number(input);
+    const ok = userAns === question.ans;
+    if (ok) {
+      const gained = 10 + streak * 2; // streak เพิ่มคะแนน
+      setScore((s) => s + gained);
+      setStreak((s) => {
+        const ns = s + 1;
+        setBestStreak((b) => Math.max(b, ns));
+        return ns;
+      });
+      setResultFlash("correct");
+    } else {
+      setStreak(0);
+      if (mode === "Lives") {
+        setLives((l) => {
+          const nl = l - 1;
+          if (nl <= 0) {
+            setEnded(true);
+            setPlaying(false);
+          }
+          return nl;
+        });
+      }
+      setResultFlash("wrong");
+    }
+    setTimeout(() => setResultFlash(null), 400);
+    if (!(mode === "Timed" && time <= 1) && !(mode === "Lives" && lives - (input == question.ans ? 0 : 1) <= 0)) {
+      nextQuestion();
+    }
+  };
+
+  // Keyboard handlers
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!playing) return;
+      if (e.key === "Enter") {
+        submit();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playing, input, question, time, lives]);
+
+  const handleEndSave = () => {
+    const entry = {
+      name: name?.trim() || "Guest",
+      score,
+      mode,
+      diff,
+      date: new Date().toLocaleString(),
+    };
+    const top = saveHighscore(entry);
+    setLb(top);
+  };
+
+  const accuracy = useMemo(() => {
+    // สมมติว่าคำถามเท่ากับจำนวนครั้งที่ตอบ (ประมาณ) — เพื่อความง่าย
+    // ในโหมด Timed/Practice จะประเมินคร่าว ๆ: streak + misses ไม่ได้เก็บละเอียด
+    return bestStreak > 0 ? Math.min(100, 50 + bestStreak * 10) : 100;
+  }, [bestStreak]);
+
+  const statCard = (title, value, sub) => (
+    <div className="rounded-2xl shadow p-4 bg-white/70 backdrop-blur border">
+      <div className="text-sm opacity-70">{title}</div>
+      <div className="text-2xl font-semibold">{value}</div>
+      {sub && <div className="text-xs opacity-60 mt-1">{sub}</div>}
+    </div>
+  );
+
+  const opToggle = (k) => {
+    setOps((arr) => {
+      if (arr.includes(k)) return arr.filter((x) => x !== k);
+      return [...arr, k];
+    });
+  };
+
+  // UI
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-br from-sky-50 via-white to-emerald-50 text-gray-800">
+      <div className="max-w-5xl mx-auto p-4 sm:p-8">
+        <header className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold">🎯 Math Sprint</h1>
+            <p className="opacity-70">เว็บไซต์เกมคณิตศาสตร์สำหรับฝึกคิดเลขอย่างรวดเร็ว</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {!playing ? (
+              <button
+                onClick={startGame}
+                className="px-4 py-2 rounded-2xl shadow bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95"
+              >
+                เริ่มเกม
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setPlaying(false);
+                  setEnded(true);
+                }}
+                className="px-4 py-2 rounded-2xl shadow bg-rose-500 text-white hover:bg-rose-600 active:scale-95"
+              >
+                จบเกม
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* Controls */}
+        <section className="mt-6 grid md:grid-cols-3 gap-4">
+          <div className="rounded-2xl border bg-white/70 backdrop-blur p-4">
+            <h3 className="font-semibold mb-3">โหมดการเล่น</h3>
+            <div className="flex flex-wrap gap-2">
+              {["Timed", "Lives", "Practice"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`px-3 py-1.5 rounded-xl border ${
+                    mode === m ? "bg-gray-900 text-white" : "bg-white hover:bg-gray-50"
+                  }`}
+                  disabled={playing}
+                >
+                  {m === "Timed" && "จับเวลา 60 วิ"}
+                  {m === "Lives" && "ชีพจร 3 ครั้ง"}
+                  {m === "Practice" && "ฝึกไม่จำกัด"}
+                </button>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mt-4 mb-2">ระดับความยาก</h3>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(DIFFS).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDiff(d)}
+                  className={`px-3 py-1.5 rounded-xl border ${
+                    diff === d ? "bg-gray-900 text-white" : "bg-white hover:bg-gray-50"
+                  }`}
+                  disabled={playing}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mt-4 mb-2">ตัวดำเนินการ</h3>
+            <div className="flex flex-wrap gap-2">
+              {OPERATORS.map((o) => (
+                <button
+                  key={o.key}
+                  onClick={() => opToggle(o.key)}
+                  className={`px-3 py-1.5 rounded-xl border ${
+                    ops.includes(o.key) ? "bg-gray-900 text-white" : "bg-white hover:bg-gray-50"
+                  }`}
+                  disabled={playing}
+                >
+                  {o.key} · {o.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-sm opacity-70 mt-3">
+              เคล็ดลับ: เปิดแค่ + และ − สำหรับผู้เริ่มต้น แล้วค่อยเพิ่ม × และ ÷ เมื่อพร้อม
+            </p>
+          </div>
+
+          {/* Game Panel */}
+          <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 md:col-span-2">
+            <div className="grid sm:grid-cols-4 gap-3 mb-4">
+              {statCard("คะแนน", score)}
+              {statCard("สตรีค", streak, `ดีที่สุด ${bestStreak}`)}
+              {mode === "Timed" ? statCard("เวลา", `${time}s`) : statCard("ชีพ", mode === "Lives" ? lives : "∞")}
+              {statCard("ความแม่นยำ (ประมาณ)", `${accuracy}%`)}
+            </div>
+
+            {/* Question */}
+            <div className="relative rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50">
+              <div className="flex items-center justify-center">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {question && (
+                    <motion.div
+                      key={`${question.a}${question.op}${question.b}`}
+                      initial={{ y: 12, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -12, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                      className="text-5xl sm:text-6xl font-bold tracking-wide py-2"
+                    >
+                      {question.a} {question.op} {question.b} = ?
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Input */}
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <input
+                  ref={inputRef}
+                  type="number"
+                  inputMode="numeric"
+                  className="w-full max-w-[220px] text-center text-2xl px-4 py-2 rounded-2xl border focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value.replace(/[^\d-]/g, ""))}
+                  disabled={!playing}
+                  placeholder="พิมพ์คำตอบ"
+                />
+                <button
+                  onClick={submit}
+                  disabled={!playing}
+                  className="px-4 py-2 rounded-2xl shadow bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 disabled:opacity-50"
+                >
+                  ส่งคำตอบ
+                </button>
+              </div>
+
+              {/* Keypad */}
+              <div className="mt-4 grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                {keypad.map((k) => (
+                  <button
+                    key={k}
+                    disabled={!playing}
+                    onClick={() => {
+                      if (k === "⌫") setInput((s) => s.slice(0, -1));
+                      else if (k === "✔") submit();
+                      else setInput((s) => (s === "0" ? k : s + k));
+                    }}
+                    className="py-3 rounded-2xl border bg-white hover:bg-gray-50 active:scale-95 disabled:opacity-40"
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+
+              {/* Feedback flash */}
+              <AnimatePresence>
+                {resultFlash && (
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    className={`mt-4 text-center font-semibold ${
+                      resultFlash === "correct" ? "text-emerald-600" : "text-rose-600"
+                    }`}
+                  >
+                    {resultFlash === "correct" ? "ถูกต้อง!" : "ยังไม่ถูก ลองใหม่"}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={startGame}
+                className="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50"
+              >
+                เริ่มใหม่
+              </button>
+              <button
+                onClick={nextQuestion}
+                disabled={!playing}
+                className="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                ข้อถัดไป ↻
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Leaderboard & Tips */}
+        <section className="mt-6 grid md:grid-cols-2 gap-4">
+          <div className="rounded-2xl border bg-white/70 backdrop-blur p-4">
+            <h3 className="font-semibold mb-2">บันทึกคะแนนสูงสุด (เครื่องนี้)</h3>
+            {lb.length === 0 ? (
+              <p className="text-sm opacity-70">ยังไม่มีข้อมูล ลองเล่นแล้วบันทึกคะแนนดูนะ</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left opacity-60">
+                      <th className="py-1 pr-2">#</th>
+                      <th className="py-1 pr-2">ชื่อ</th>
+                      <th className="py-1 pr-2">คะแนน</th>
+                      <th className="py-1 pr-2">โหมด</th>
+                      <th className="py-1 pr-2">ระดับ</th>
+                      <th className="py-1 pr-2">เวลา</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lb.map((r, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="py-1 pr-2">{i + 1}</td>
+                        <td className="py-1 pr-2">{r.name}</td>
+                        <td className="py-1 pr-2 font-semibold">{r.score}</td>
+                        <td className="py-1 pr-2">{r.mode}</td>
+                        <td className="py-1 pr-2">{r.diff}</td>
+                        <td className="py-1 pr-2 whitespace-nowrap">{r.date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border bg-white/70 backdrop-blur p-4">
+            <h3 className="font-semibold mb-2">สรุปผลรอบนี้</h3>
+            {!ended ? (
+              <p className="text-sm opacity-70">เริ่มเกมและเล่นให้จบรอบเพื่อบันทึกคะแนน</p>
+            ) : (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {statCard("คะแนน", score)}
+                  {statCard("สตรีคสูงสุด", bestStreak)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="พิมพ์ชื่อเพื่อบันทึกคะแนน"
+                    className="flex-1 px-3 py-2 rounded-xl border"
+                  />
+                  <button
+                    onClick={handleEndSave}
+                    className="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50"
+                  >
+                    บันทึก
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 text-sm">
+              <h4 className="font-semibold">วิธีเล่น</h4>
+              <ul className="list-disc ml-5 space-y-1 opacity-80">
+                <li>เลือกโหมด, ระดับความยาก และตัวดำเนินการ แล้วกด "เริ่มเกม"</li>
+                <li>ตอบให้ถูกต้องต่อเนื่องเพื่อเพิ่มสตรีคและได้คะแนนเพิ่ม</li>
+                <li>กด Enter เพื่อส่งคำตอบได้เร็วขึ้น</li>
+                <li>โหมดจับเวลา: มีเวลา 60 วินาที | โหมดชีพจร: ผิดได้ 3 ครั้ง</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <footer className="mt-8 text-center text-xs opacity-60">
+          สร้างด้วย React + Tailwind · เหมาะสำหรับใช้สอน/ฝึกคิดเลขในห้องเรียน
+        </footer>
+      </div>
+    </div>
+  );
+}

@@ -12,6 +12,9 @@ import { createScript } from '../store/scripts.store.ts';
 const Wrapper = styled.div`
   background-color: ${fromTheme('backgroundColor')};
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 
   .explorer-header {
     display: flex;
@@ -24,9 +27,28 @@ const Wrapper = styled.div`
     border-bottom: 1px solid ${fromTheme('borderColor')};
     user-select: none;
     height: ${scale(25)};
+    flex-shrink: 0;
   }
 
   .explorer-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+
+    &::-webkit-scrollbar {
+      width: ${scale(4)};
+    }
+
+    &::-webkit-scrollbar-track {
+      background: ${fromTheme('secondaryColor')};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: ${fromTheme('scrollBarColor')};
+    }
+
     .divider {
       height: 1px;
       background-color: ${fromTheme('borderColor')};

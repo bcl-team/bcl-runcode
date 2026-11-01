@@ -33,7 +33,8 @@ const Wrapper = styled.div`
 
   .editor-tabs {
     overflow-y: auto;
-    width: 90%;
+    flex: 1;
+    min-width: 0;
     padding: 0;
     margin: 0;
     display: flex;
@@ -104,6 +105,7 @@ const Wrapper = styled.div`
   }
 
   .editor-actions {
+    flex-shrink: 0;
     border-left: 1px solid ${fromTheme('borderColor')};
     box-sizing: border-box;
     padding-left: ${scale(2)};
@@ -289,6 +291,7 @@ export const CodeEditor: FC = () => {
             theme={'vs-dark'}
             height={'100%'}
             options={{
+              automaticLayout: true,
               padding: {
                 top: Math.round(rate * 10),
                 bottom: Math.round(rate * 10),
